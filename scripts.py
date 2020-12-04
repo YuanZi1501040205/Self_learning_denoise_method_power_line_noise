@@ -3,7 +3,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 # configure the dataset size to generate
-path_save = "/homelocal/ML_Denoise_Harmonic/output/figures/"
+path_save = "/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/figures/"
 num_receiver = 1
 num_shot = 1
 time_step = 0.002  # sample 2 ms
@@ -40,7 +40,7 @@ plt.cla()
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+t = time_vec
 # 5 hz
 fm = 5 # set the main frequency component of seismic wavelet is 15hz
 ricker = (1 - 2 * np.pi ** 2 * fm ** 2 * t  ** 2) * np.exp(-np.pi ** 2 * fm ** 2 * t ** 2)
@@ -680,15 +680,112 @@ plt.show()
 plt.cla()
 # %% blur down sample signal after notch filter
 import cv2
-kernel_size = (1,3)
 sig_filter_ds_blur = []
+kernel_size = (35, 1)
+sigma = 5
 for i in range(len_trace):
+    img = cv2.GaussianBlur(sig_filter_ds[i].reshape(1, sig_filter_ds[i].shape[0]), kernel_size, sigma);
+    img = img.reshape(sig_filter_ds[i].shape[0])
+    sig_filter_ds_blur.append(img)
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[0], label='5hz signal remove 10hz harmonic noise with notch filter')
 
-    img = cv2.GaussianBlur(img, kernel_size, sigma);
-    sig_img = sig_filter[i].reshape(1, sig_filter[i].shape[0])
-    sig_img = cv2.resize(sig_img, (int(sig_filter[i].shape[0] / 5), 1), cv2.INTER_LINEAR)
-    sig_img = sig_img.reshape(int(sig_filter[i].shape[0] / 5))
-    sig_filter_ds.append(sig_img)
+title = "blur down sample 5hz signal notch filter remove 10hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[1], label='5hz signal remove 20hz harmonic noise with notch filter')
+
+title = "blur down sample 5hz signal notch filter remove 20hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[2], label='5hz signal remove 50hz harmonic noise with notch filter')
+
+title = "blur down sample 5hz signal notch filter remove 50hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[3], label='10hz signal remove 10hz harmonic noise with notch filter')
+
+title = "blur down sample 10hz signal notch filter remove 10hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[4], label='10hz signal remove 20hz harmonic noise with notch filter')
+
+title = "blur down sample 10hz signal notch filter remove 20hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[5], label='10hz signal remove 50hz harmonic noise with notch filter')
+
+title = "blur down sample 10hz signal notch filter remove 50hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[6], label='15hz signal remove 10hz harmonic noise with notch filter')
+
+title = "blur down sample 15hz signal notch filter remove 10hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[7], label='15hz signal remove 20hz harmonic noise with notch filter')
+
+title = "blur down sample 15hz signal notch filter remove 20hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+# %%plot blur down sample extracted signal after notch filter
+plt.plot(time_vec[:500], sig_filter_ds_blur[8], label='15hz signal remove 50hz harmonic noise with notch filter')
+
+title = "blur down sample 15hz signal notch filter remove 50hz noise"
+plt.ylabel('Amplitude')
+plt.xlabel('Time [s]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
 # %%
 # Calculate the X (all data)
 X = []
@@ -698,9 +795,8 @@ for i in range(len_trace):
     # extract trace
     sig_true = gt[i]# extract synthetic seismic signal as the ground truth of NN
     sig_input = data_traces[i]  # extract signal with harmonic noise as the input of NN
-    sig_filter = sig_filter[i]
-
-    data_trace = np.concatenate((sig_true, sig_input), axis=0)
+    sig_ds_blur = sig_filter_ds_blur[i]
+    data_trace = np.concatenate((sig_true, sig_input, sig_ds_blur), axis=0)
     X.append(data_trace)
 
 X = np.array(X)
