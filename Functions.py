@@ -162,6 +162,7 @@ def butter_lowpass_filter(data, highcut, fs, order=5):
     y = filtfilt(b, a, data)
     return y
 
+
 def gain_AGC(shot_gather, rms, gate_height, gate_width):
     #mask = np.ones((shot_gather.shape[0], shot_gather.shape[1]))
     zeropool_height = np.zeros((shot_gather.shape[0],int((gate_height-1)/2)))
@@ -217,8 +218,8 @@ class ResDoubleConv(nn.Module):
             self.same_shape = True
 
         self.res_double_conv = nn.Sequential(
-            attention_residual_block(in_channels, out_channels, same_shape=self.same_shape),
-            attention_residual_block(out_channels, out_channels)
+            my_residual_block(in_channels, out_channels, same_shape=self.same_shape),
+            my_residual_block(out_channels, out_channels)
 
         )
 
@@ -327,9 +328,9 @@ class residual_block(nn.Module):
         return F.leaky_relu_(x + out)
 
 
-class attention_residual_block(nn.Module):
+class my_residual_block(nn.Module):
     def __init__(self, in_channel, out_channel, same_shape=True):
-        super(attention_residual_block, self).__init__()
+        super(my_residual_block, self).__init__()
         self.same_shape = same_shape
         stride = 1
 
@@ -343,9 +344,9 @@ class attention_residual_block(nn.Module):
 
     def forward(self, x):
         out = self.conv1(x)
-        out = F.leaky_relu_(self.bn1(out))
+        out = F.leaky_relu_(self.bn1(out), True)
         out = self.conv2(out)
-        out = F.leaky_relu_(self.bn2(out))
+        out = F.leaky_relu_(self.bn2(out), True)
 
         if not self.same_shape:
             x = self.conv3(x)
@@ -542,6 +543,82 @@ class AttentionVisualization:
 
 
 # ------------------------loss zoo--------------------------------------------------------------------------
+class GaussianBlurConv(nn.Module):
+    def __init__(self, channels=1):
+        # input kernel should be shape:[1,size of kernal]
+        super(GaussianBlurConv, self).__init__()
+        self.channels = channels
+        kernel = np.array([gauss_kernel])
+        kernel_size = kernel.shape[1]
+        kernel = torch.FloatTensor(kernel).unsqueeze(0)
+        kernel = np.repeat(kernel, self.channels, axis=0)
+        self.weight = nn.Parameter(data=kernel, requires_grad=True)
+        self.padding = int(kernel_size/2)
+    def __call__(self, x):
+        x = F.conv1d(x, self.weight, padding=self.padding, stride=1, groups=self.channels)
+        return x
+
+def my_powerline_loss1(pre_sig, pre_noise, sig_label, input):
+    """ All input is 3 dimensions (batch,channel,signal)
+    loss 1 calculated 2 parts of loss and 2 regularizer:
+loss1.MSE loss of (original trace, predicted noise + predicted signal)
+loss2. Wasserstein loss of (notch filter->down sample->gaussian blur signal, predicted signal-down sample- gaussian blur)
+regularizer1.L2 norm on signal time domain
+regularizer2.L1 norm on the noise frequency domain"""
+
+    import torch
+    import torch.nn as nn
+    import cv2
+    import torch.nn.functional as F
+
+    # Loss 1: signal prediction + noise prediction = original input(real signal + real noise)
+    MSEloss = nn.MSELoss()
+    Loss_1 = MSEloss(input, pre_sig + pre_noise)
+
+    # Loss 2:Wasserstein loss of (notch filter->down sample->gaussian blur signal, predicted signal-down sample- gaussian blur)
+    # downsample
+    d_sig_label = sig_label.unsqueeze(0)
+    d_pre_sig = pre_sig.unsqueeze(0)
+    d_shape = int(d_sig_label.shape[-1]/5) # size of signal after downsample, here is 500
+    d_sig_label = torch.nn.functional.interpolate(d_sig_label, size=(1, d_shape), mode='bilinear')
+    d_pre_sig = torch.nn.functional.interpolate(d_pre_sig, size=(1, d_shape), mode='bilinear')
+    d_sig_label = d_sig_label.squeeze(0)
+    d_pre_sig = d_pre_sig.squeeze(0)
+
+    # gaussian blur
+    sigma = 5
+    kernel_size = 35
+    cv2_kernel = cv2.getGaussianKernel(kernel_size, sigma)
+    cv2_kernel = cv2_kernel.squeeze(1)
+    cv2_kernel = torch.from_numpy(cv2_kernel).to(device=pre_sig.device)
+    padding = int(kernel_size/2)
+    channels = 1
+    db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
+    db_pre_sig = F.conv1d(d_pre_sig, cv2_kernel, padding=padding, stride=1, groups=channels)
+    Loss_2 = MSEloss(db_sig_label, db_pre_sig)
+
+    # regularizer1: L2 norm on signal time domain
+    pre_sig = pre_sig.squeeze(0).squeeze(0)
+    R_sig_L2 = (pre_sig**2).mean()/torch.abs(pre_sig).max()
+
+    # regularizer2: L1 norm on the noise frequency domain
+    pre_noise = pre_noise.squeeze(0).squeeze(0)
+    pre_noise_reshape = pre_noise.reshape(int(pre_noise.__len__() / 2), 2)
+    pre_noise_fft = torch.fft(pre_noise_reshape, 1, normalized=True)
+    R_noise_L1 = torch.sqrt(pre_noise_fft[:, 0]**2 + pre_noise_fft[:, 1]**2).mean()
+
+
+    alpha = 1
+    beta = 1
+    lamda = 1
+    gamma = 1
+
+    print('alpha * Loss_1: ', alpha * Loss_1)
+    print('beta * Loss_2: ', beta * Loss_2)
+    print('lamda * R_sig_L2: ', lamda * R_sig_L2)
+    print('gamma * R_noise_L1: ', gamma * R_noise_L1)
+    loss = alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
+    return loss
 
 def my_loss_f1(y_pred, y):
     """loss one to calculated 10-40 frequency MSE and L1 norm on time domain"""

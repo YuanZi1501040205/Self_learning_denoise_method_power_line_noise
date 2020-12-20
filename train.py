@@ -1,7 +1,6 @@
-"""Self_supervised_train_train.py: File to train the Neural Networks for AGT_FWI_PROJECT2020 Self Supervised Version"""
+"""_train.py: File to train the Neural Networks for Powerline Noise Removal by using Self Supervised Method"""
 
-# Example Usage: python train.py -train /homelocal/AGT_FWI_2020/MLFWI_data-20200528T194322Z-001/Time_Self_Learning/No_deconv/Time_SelfMarineS_Marmousi_Train.h5 -model CNN00_ResUNet1 -output /homelocal/AGT_FWI_2020/output/
-# Example Usage: python train.py -train /homelocal/AGT_FWI_2020/MLFWI_data-20200528T194322Z-001/Time_Self_Learning/simple/Time_Self_Syn_10l_192_dataset_Train.h5 -model CNN00_ResUNet1 -output /homelocal/AGT_FWI_2020/output/
+# Example Usage: python train.py -train /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -model BlurResUNet1 -output /homelocal/Self_learning_denoise_method_power_line_noise/output/
 
 __author__ = "Yuan Zi"
 __email__ = "yzi2@central.uh.edu"
@@ -12,8 +11,9 @@ __version__ = "1.0.0"
 
 def main():
     """ The main function that parses input arguments, calls the appropriate
-     Neuro Networks models and chose train and test dataset' paths and configure
-     the output path. Output 10 Predicted Traces figures and one loss monitor figure, and one evaluation
+     Neural Networks models and chose train and test dataset' paths and configure
+     the output path. input dataset should be contain the original record (noise + signal)
+     and a label of signal acquired by using notch filter. Output the comparison result of the notch filter result and the new results.
      results figure at the output path folder"""
     # Parse input arguments START
     from argparse import ArgumentParser
