@@ -19,7 +19,7 @@ def models(name_model):
     import torch.nn as nn
 
     # Time Domain
-    if name_model == "BlurResUNet1":  #
+    if name_model == "HashResUNet1":  #
         #  model build
         # %%
         from Functions import DoubleConv
@@ -44,7 +44,7 @@ def models(name_model):
                 self.down5 = ResDown(1024, 2048)
                 factor = 2 if bilinear else 1
                 self.down6 = ResDown(2048, 4096 // factor)
-                # decoder one for signal
+                # decoder for signal
                 self.up1 = Up(4096, 2048 // factor, bilinear)
                 self.up2 = Up(2048, 1024 // factor, bilinear)
                 self.up3 = Up(1024, 512 // factor, bilinear)
@@ -52,13 +52,13 @@ def models(name_model):
                 self.up5 = Up(256, 128, bilinear)
                 self.up6 = Up(128, 64, bilinear)
                 self.out_sig = OutConv(64, 1)
-                # decoder two for noise
+                # decoder for noise
                 self.noise_up1 = Up(4096, 2048 // factor, bilinear)
-                self.noise_up1 = Up(2048, 1024 // factor, bilinear)
-                self.noise_up1 = Up(1024, 512 // factor, bilinear)
-                self.noise_up1 = Up(512, 256, bilinear)
-                self.noise_up1 = Up(256, 128, bilinear)
-                self.noise_up1 = Up(128, 64, bilinear)
+                self.noise_up2 = Up(2048, 1024 // factor, bilinear)
+                self.noise_up3 = Up(1024, 512 // factor, bilinear)
+                self.noise_up4 = Up(512, 256, bilinear)
+                self.noise_up5 = Up(256, 128, bilinear)
+                self.noise_up6 = Up(128, 64, bilinear)
                 self.out_noise = OutConv(64, 1)
 
 
@@ -80,11 +80,11 @@ def models(name_model):
                 sig = self.out_sig(sig)
                 sig = sig.view(sig.shape[0], -1)
                 noise = self.noise_up1(x7, x6)
-                noise = self.noise_up1(noise, x5)
-                noise = self.noise_up1(noise, x4)
-                noise = self.noise_up1(noise, x3)
-                noise = self.noise_up1(noise, x2)
-                noise = self.noise_up1(noise, x1)
+                noise = self.noise_up2(noise, x5)
+                noise = self.noise_up3(noise, x4)
+                noise = self.noise_up4(noise, x3)
+                noise = self.noise_up5(noise, x2)
+                noise = self.noise_up6(noise, x1)
                 noise = self.out_noise(noise)
                 noise = sig.view(noise.shape[0], -1)
                 return sig, noise
@@ -92,7 +92,7 @@ def models(name_model):
         model = UNet(input_channels=1, bilinear=True)
         # case we will use self define Mean Squared Error (MSE) as  ur loss function.
         from Functions import my_powerline_loss1
-        loss_func = nn.MSELoss()
+        loss_func = my_powerline_loss1
         optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
 
     # %%

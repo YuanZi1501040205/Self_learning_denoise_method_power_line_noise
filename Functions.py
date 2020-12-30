@@ -570,16 +570,19 @@ regularizer2.L1 norm on the noise frequency domain"""
     import torch.nn as nn
     import cv2
     import torch.nn.functional as F
+    from pytorch_stats_loss import torch_wasserstein_loss
 
     # Loss 1: signal prediction + noise prediction = original input(real signal + real noise)
     MSEloss = nn.MSELoss()
     Loss_1 = MSEloss(input, pre_sig + pre_noise)
 
-    # Loss 2:Wasserstein loss of (notch filter->down sample->gaussian blur signal, predicted signal-down sample- gaussian blur)
+    # Loss 2: Wasserstein loss of (notch filter->down sample->gaussian blur signal, predicted signal-down sample-
+    # gaussian blur)
+
     # downsample
     d_sig_label = sig_label.unsqueeze(0)
     d_pre_sig = pre_sig.unsqueeze(0)
-    d_shape = int(d_sig_label.shape[-1]/5) # size of signal after downsample, here is 500
+    d_shape = int(500) # size of signal after downsample, here is 500
     d_sig_label = torch.nn.functional.interpolate(d_sig_label, size=(1, d_shape), mode='bilinear')
     d_pre_sig = torch.nn.functional.interpolate(d_pre_sig, size=(1, d_shape), mode='bilinear')
     d_sig_label = d_sig_label.squeeze(0)
@@ -590,12 +593,13 @@ regularizer2.L1 norm on the noise frequency domain"""
     kernel_size = 35
     cv2_kernel = cv2.getGaussianKernel(kernel_size, sigma)
     cv2_kernel = cv2_kernel.squeeze(1)
-    cv2_kernel = torch.from_numpy(cv2_kernel).to(device=pre_sig.device)
+    cv2_kernel = torch.from_numpy(cv2_kernel).to(device=pre_sig.device).unsqueeze(0).unsqueeze(0).type(torch.FloatTensor)
     padding = int(kernel_size/2)
     channels = 1
-    db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
     db_pre_sig = F.conv1d(d_pre_sig, cv2_kernel, padding=padding, stride=1, groups=channels)
-    Loss_2 = MSEloss(db_sig_label, db_pre_sig)
+    db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
+    # Loss_2 = MSEloss(db_sig_label, db_pre_sig) # try MSE first
+    Loss_2 = MSEloss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
 
     # regularizer1: L2 norm on signal time domain
     pre_sig = pre_sig.squeeze(0).squeeze(0)
