@@ -559,6 +559,12 @@ class GaussianBlurConv(nn.Module):
         return x
 
 def my_powerline_loss1(pre_sig, pre_noise, sig_label, input):
+    # parameters are the hyperparameters:
+    #     alpha = 100
+    #     beta = 1
+    #     lamda = 1
+    #     gamma = 1
+
     """ All input is 3 dimensions (batch,channel,signal)
     loss 1 calculated 2 parts of loss and 2 regularizer:
 loss1.MSE loss of (original trace, predicted noise + predicted signal)
@@ -593,13 +599,15 @@ regularizer2.L1 norm on the noise frequency domain"""
     kernel_size = 35
     cv2_kernel = cv2.getGaussianKernel(kernel_size, sigma)
     cv2_kernel = cv2_kernel.squeeze(1)
-    cv2_kernel = torch.from_numpy(cv2_kernel).to(device=pre_sig.device).unsqueeze(0).unsqueeze(0).type(torch.FloatTensor)
+    cv2_kernel = torch.from_numpy(cv2_kernel).unsqueeze(0).unsqueeze(0).type(torch.FloatTensor).to(device=pre_sig.device)
     padding = int(kernel_size/2)
     channels = 1
+    d_pre_sig = d_pre_sig.to(device=pre_sig.device)
+    d_sig_label = d_sig_label.to(device=pre_sig.device)
     db_pre_sig = F.conv1d(d_pre_sig, cv2_kernel, padding=padding, stride=1, groups=channels)
     db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
     # Loss_2 = MSEloss(db_sig_label, db_pre_sig) # try MSE first
-    Loss_2 = MSEloss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
+    Loss_2 = torch_wasserstein_loss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
 
     # regularizer1: L2 norm on signal time domain
     pre_sig = pre_sig.squeeze(0).squeeze(0)
@@ -612,15 +620,16 @@ regularizer2.L1 norm on the noise frequency domain"""
     R_noise_L1 = torch.sqrt(pre_noise_fft[:, 0]**2 + pre_noise_fft[:, 1]**2).mean()
 
 
-    alpha = 1
+    alpha = 1000
     beta = 1
-    lamda = 1
-    gamma = 1
+    lamda = 100
+    gamma = 10
 
-    print('alpha * Loss_1: ', alpha * Loss_1)
-    print('beta * Loss_2: ', beta * Loss_2)
-    print('lamda * R_sig_L2: ', lamda * R_sig_L2)
-    print('gamma * R_noise_L1: ', gamma * R_noise_L1)
+
+    # print('alpha * Loss_1: ', alpha * Loss_1)
+    # print('beta * Loss_2: ', beta * Loss_2)
+    # print('lamda * R_sig_L2: ', lamda * R_sig_L2)
+    # print('gamma * R_noise_L1: ', gamma * R_noise_L1)
     loss = alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
     return loss
 

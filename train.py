@@ -1,7 +1,7 @@
 """train.py: File to train the Neural Networks for Power-line Noise Removal by using Self Supervised Method"""
 
 # Example Usage: python train.py -train /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -model HashResUNet1 -output /home/yzi/research/Self_learning_denoise_method_power_line_noise/
-
+# python train.py -train /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -test /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5 -model HashResUNet1 -output /homelocal/Self_learning_denoise_method_power_line_noise/output/
 __author__ = "Yuan Zi"
 __email__ = "yzi2@central.uh.edu"
 __version__ = "1.0.0"
@@ -129,7 +129,7 @@ def main():
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=False)
 
     # Train
-    epochs = 100
+    epochs = 200
     np.random.seed(1997)
     # random_array = np.random.randint(x.shape[0] * x.shape[1], size=(1, 25))
     for i, (x, true, sig_label) in enumerate(train_dl):
@@ -290,7 +290,4 @@ def main():
 
 
 if __name__ == "__main__":
-    train  = '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5'
-    model = 'HashResUNet1'
-    output =  '/home/yzi/research/Self_learning_denoise_method_power_line_noise/'
     main()
