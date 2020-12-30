@@ -75,6 +75,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 #%%plot signal fft power
 from scipy import fftpack
 import numpy as np
@@ -95,6 +96,7 @@ plt.title(title)
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 #%%plot wavelet fft power
 trace = traces[0]
 ricker_5_fft = fftpack.fft(ricker_5)
@@ -119,6 +121,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% convolution wavelet with signal plot power
 trace_sig_5_fft = ricker_5_fft * trace_fft
 trace_sig_10_fft = ricker_10_fft * trace_fft
@@ -140,6 +143,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot time domain
 trace_sig_5 = fftpack.ifft(trace_sig_5_fft).real
 trace_sig_10 = fftpack.ifft(trace_sig_10_fft).real
@@ -157,6 +161,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% PLot the cos harmonic noise
 f0_10 = 10
 f0_20 = 20
@@ -182,6 +187,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% PLot the cos harmonic noise fft power
 
 noise_10hz_fft_power = abs(fftpack.fft(noise_10hz))
@@ -201,6 +207,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% add (10, 20, 50 Hz)noise to the (5, 10, 15)signal. Totally 9 signal with noise
 trace_noise_10_sig_5 = noise_10hz + trace_sig_5
 trace_noise_20_sig_5 = noise_20hz + trace_sig_5
@@ -224,6 +231,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 20hz noise + 5hz signal
 plt.plot(time_vec, trace_noise_20_sig_5, label='trace_noise_20_sig_5')
 
@@ -235,6 +243,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 50hz noise + 5hz signal
 plt.plot(time_vec, trace_noise_50_sig_5, label='trace_noise_50_sig_5')
 
@@ -246,6 +255,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 10hz noise + 10hz signal
 plt.plot(time_vec, trace_noise_10_sig_10, label='trace_noise_10_sig_10')
 
@@ -257,6 +267,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 20hz noise + 5hz signal
 plt.plot(time_vec, trace_noise_20_sig_10, label='trace_noise_20_sig_10')
 
@@ -268,6 +279,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 50hz noise + 10hz signal
 plt.plot(time_vec, trace_noise_50_sig_10, label='trace_noise_50_sig_10')
 
@@ -279,6 +291,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 10hz noise + 15hz signal
 plt.plot(time_vec, trace_noise_10_sig_15, label='trace_noise_10_sig_15')
 
@@ -290,6 +303,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 20hz noise + 15hz signal
 plt.plot(time_vec, trace_noise_20_sig_15, label='trace_noise_20_sig_15')
 
@@ -301,6 +315,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% 50hz noise + 15hz signal
 plt.plot(time_vec, trace_noise_50_sig_15, label='trace_noise_50_sig_15')
 
@@ -312,7 +327,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-
+plt.close()
 # %% plot the signal with noise fft power
 trace_noise_10_sig_5_fft = fftpack.fft(trace_noise_10_sig_5)
 trace_noise_20_sig_5_fft = fftpack.fft(trace_noise_20_sig_5)
@@ -336,6 +351,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_10_sig_10_fft)[:401], label='trace_noise_10_sig_10_fft')
@@ -348,6 +364,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_10_sig_15_fft)[:401], label='trace_noise_10_sig_15_fft')
@@ -360,6 +377,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%
 plt.plot(sample_freq[:401], abs(trace_noise_20_sig_5_fft)[:401], label='trace_noise_20_sig_5')
 
@@ -371,6 +389,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_20_sig_10_fft)[:401], label='trace_noise_20_sig_10_fft')
@@ -383,6 +402,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_20_sig_15_fft)[:401], label='trace_noise_20_sig_15_fft')
@@ -395,6 +415,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%
 plt.plot(sample_freq[:401], abs(trace_noise_50_sig_5_fft)[:401], label='trace_noise_50_sig_5')
 
@@ -406,6 +427,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_50_sig_10_fft)[:401], label='trace_noise_50_sig_10_fft')
@@ -418,6 +440,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% plot the signal with noise fft power
 
 plt.plot(sample_freq[:401], abs(trace_noise_50_sig_15_fft)[:401], label='trace_noise_50_sig_15_fft')
@@ -430,6 +453,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% prepare 9 signal and corresponding ground truth
 import h5py
 len_trace = 9
@@ -463,7 +487,7 @@ for i in range(len_trace):
     b, a = signal.iirnotch(f0_notch, Q, fs)
     sig_filter.append(filtfilt(b, a, data_traces[i]))
 
-# %%
+# %% notch filter time domain trace 1
 plt.plot(time_vec, gt[0], label='5hz ground truth signal')
 plt.plot(time_vec, sig_filter[0], label='notch filter remove 10hz harmonic noise')
 
@@ -475,7 +499,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 2
 plt.plot(time_vec, gt[1], label='5hz ground truth signal')
 plt.plot(time_vec, sig_filter[1], label='notch filter remove 20hz harmonic noise')
 
@@ -487,7 +512,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 3
 plt.plot(time_vec, gt[2], label='5hz ground truth signal')
 plt.plot(time_vec, sig_filter[2], label='notch filter remove 50hz harmonic noise')
 
@@ -499,7 +525,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 4
 plt.plot(time_vec, gt[3], label='10hz ground truth signal')
 plt.plot(time_vec, sig_filter[3], label='notch filter remove 10hz harmonic noise')
 
@@ -511,7 +538,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 5
 plt.plot(time_vec, gt[4], label='10hz ground truth signal')
 plt.plot(time_vec, sig_filter[4], label='notch filter remove 20hz harmonic noise')
 
@@ -523,7 +551,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 6
 plt.plot(time_vec, gt[5], label='10hz ground truth signal')
 plt.plot(time_vec, sig_filter[5], label='notch filter remove 50hz harmonic noise')
 
@@ -535,7 +564,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 7
 plt.plot(time_vec, gt[6], label='15hz ground truth signal')
 plt.plot(time_vec, sig_filter[6], label='notch filter remove 10hz harmonic noise')
 
@@ -547,7 +577,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 8
 plt.plot(time_vec, gt[7], label='15hz ground truth signal')
 plt.plot(time_vec, sig_filter[7], label='notch filter remove 20hz harmonic noise')
 
@@ -559,7 +590,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% notch filter time domain trace 9
 plt.plot(time_vec, gt[8], label='15hz ground truth signal')
 plt.plot(time_vec, sig_filter[8], label='notch filter remove 50hz harmonic noise')
 
@@ -571,6 +603,148 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
+# %% notch filter fft
+
+sig_filter_fft = []
+gt_fft = []
+for i in range(len_trace):
+    sig_filter_fft.append(fftpack.fft(sig_filter[i]))
+    gt_fft.append(fftpack.fft(gt[i]))
+
+# %% notch filter frequency domain trace 1
+plt.plot(sample_freq[:401], abs(trace_noise_10_sig_5_fft)[:401], label='5hz ground truth signal + 10hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[0])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[0])[:401], label='ground truth')
+
+
+title = "5hz signal notch filter remove 10hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter frequency domain trace 2
+plt.plot(sample_freq[:401], abs(trace_noise_20_sig_5_fft)[:401], label='5hz ground truth signal + 20hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[1])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[1])[:401], label='ground truth')
+
+title = "5hz signal notch filter remove 20hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter frequency domain trace 3
+plt.plot(sample_freq[:401], abs(trace_noise_50_sig_5_fft)[:401], label='5hz ground truth signal + 50hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[2])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[2])[:401], label='ground truth')
+
+title = "5hz signal notch filter remove 50hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 4
+plt.plot(sample_freq[:401], abs(trace_noise_10_sig_10_fft)[:401], label='10hz ground truth signal + 10hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[3])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[3])[:401], label='ground truth')
+
+
+title = "10hz signal notch filter remove 10hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 5
+plt.plot(sample_freq[:401], abs(trace_noise_20_sig_10_fft)[:401], label='10hz ground truth signal + 20hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[4])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[4])[:401], label='ground truth')
+
+
+title = "10hz signal notch filter remove 20hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 6
+plt.plot(sample_freq[:401], abs(trace_noise_50_sig_10_fft)[:401], label='10hz ground truth signal + 50hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[5])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[5])[:401], label='ground truth')
+
+
+title = "10hz signal notch filter remove 50hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 7
+plt.plot(sample_freq[:401], abs(trace_noise_10_sig_15_fft)[:401], label='15hz ground truth signal + 10hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[6])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[6])[:401], label='ground truth')
+
+
+title = "15hz signal notch filter remove 10hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 8
+plt.plot(sample_freq[:401], abs(trace_noise_20_sig_15_fft)[:401], label='15hz ground truth signal + 20hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[7])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[7])[:401], label='ground truth')
+
+
+title = "15hz signal notch filter remove 20hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
+# %% notch filter Frequency domain trace 9
+plt.plot(sample_freq[:401], abs(trace_noise_50_sig_15_fft)[:401], label='15hz ground truth signal + 50hz harmonic noise')
+plt.plot(sample_freq[:401], abs(sig_filter_fft[8])[:401], label='notch filter')
+plt.plot(sample_freq[:401], abs(gt_fft[8])[:401], label='ground truth')
+
+
+title = "15hz signal notch filter remove 50hz noise power"
+plt.ylabel('Amplitude')
+plt.xlabel('Frequency [hz]')
+plt.title(title)
+plt.legend()
+plt.savefig(path_save + title + '.png')
+plt.show()
+plt.cla()
+plt.close()
 # %% down sample signal after notch filter
 import cv2
 sig_filter_ds = []
@@ -590,6 +764,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[1], label='5hz signal remove 20hz harmonic noise with notch filter')
 
@@ -601,6 +776,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[2], label='5hz signal remove 50hz harmonic noise with notch filter')
 
@@ -612,6 +788,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[3], label='10hz signal remove 10hz harmonic noise with notch filter')
 
@@ -623,6 +800,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[4], label='10hz signal remove 20hz harmonic noise with notch filter')
 
@@ -634,6 +812,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[5], label='10hz signal remove 50hz harmonic noise with notch filter')
 
@@ -645,6 +824,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[6], label='15hz signal remove 10hz harmonic noise with notch filter')
 
@@ -656,6 +836,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds[7], label='15hz signal remove 20hz harmonic noise with notch filter')
 
@@ -678,6 +859,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %% blur down sample signal after notch filter
 import cv2
 sig_filter_ds_blur = []
@@ -698,6 +880,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[1], label='5hz signal remove 20hz harmonic noise with notch filter')
 
@@ -709,6 +892,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[2], label='5hz signal remove 50hz harmonic noise with notch filter')
 
@@ -720,6 +904,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[3], label='10hz signal remove 10hz harmonic noise with notch filter')
 
@@ -731,6 +916,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[4], label='10hz signal remove 20hz harmonic noise with notch filter')
 
@@ -742,6 +928,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[5], label='10hz signal remove 50hz harmonic noise with notch filter')
 
@@ -753,6 +940,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[6], label='15hz signal remove 10hz harmonic noise with notch filter')
 
@@ -775,6 +963,7 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
+plt.close()
 # %%plot blur down sample extracted signal after notch filter
 plt.plot(time_vec[:500], sig_filter_ds_blur[8], label='15hz signal remove 50hz harmonic noise with notch filter')
 
@@ -786,7 +975,8 @@ plt.legend()
 plt.savefig(path_save + title + '.png')
 plt.show()
 plt.cla()
-# %%
+plt.close()
+# %% dataset for training
 # Calculate the X (all data)
 X = []
 # Convert dataset to format of (len_trace)
@@ -807,6 +997,28 @@ name_data = 'Self_Syn_harmonic_dataset_9'
 f = h5py.File(path_save + name_data + '.h5', 'w')
 f.create_dataset('X', data=X)
 f.close()
+# %% dataset for evaluation
+# Calculate the X (all data)
+X = []
+# Convert dataset to format of (len_trace)
+len_trace = 9
+for i in range(len_trace):
+    # extract trace
+    sig_true = gt[i]# extract synthetic seismic signal as the ground truth of NN
+    sig_input = data_traces[i]  # extract signal with harmonic noise as the input of NN
+    sig_notch = sig_filter[i]
+    data_trace = np.concatenate((sig_true, sig_input, sig_notch), axis=0)
+    X.append(data_trace)
+
+X = np.array(X)
+# Write the dataset to HDF5 file
+
+name_data = 'Self_Syn_harmonic_dataset_9_test'
+
+f = h5py.File(path_save + name_data + '.h5', 'w')
+f.create_dataset('X', data=X)
+f.close()
+
 
 
 

@@ -1,6 +1,5 @@
 """train.py: File to train the Neural Networks for Power-line Noise Removal by using Self Supervised Method"""
 
-# Example Usage: python train.py -train /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -model BlurResUNet1 -output /homelocal/Self_learning_denoise_method_power_line_noise/output/
 # Example Usage: python train.py -train /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -model HashResUNet1 -output /home/yzi/research/Self_learning_denoise_method_power_line_noise/
 
 __author__ = "Yuan Zi"
@@ -8,14 +7,12 @@ __email__ = "yzi2@central.uh.edu"
 __version__ = "1.0.0"
 
 
-
-
-
 def main():
     """ The main function that parses input arguments, calls the appropriate
-     Neural Networks models, chose train and test dataset' paths and configure
+     Neural Networks models, chose train dataset' paths and configure
      the output path. input dataset should be contain the original record ( true noise + true signal) as the input,
-     true signal as the ground truth. And a label of signal acquired by using notch filter.
+     down-sampled blured nothch filter signal result as the signal label. true signal as the ground truth(no be used
+     during training)
      Output the self learning predicted signal and training loss figures to the output path folder"""
     # Parse input arguments START
     from argparse import ArgumentParser
@@ -25,6 +22,7 @@ def main():
     import os
     import torch
     import h5py
+    from scipy import fftpack
 
     # monitor the time for each experiment
     import time
@@ -32,8 +30,9 @@ def main():
 
     parser = ArgumentParser()
     parser.add_argument("-train", help="specify the path of the training dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5')
+    parser.add_argument("-test", help="specify the path of the testing dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     parser.add_argument("-model", help="Specify the model to train", default='HashResUNet1')
-    parser.add_argument("-output", help="Specify the output path for storing the results", default='/home/yzi/research/Self_learning_denoise_method_power_line_noise/')
+    parser.add_argument("-output", help="Specify the output path for storing the results", default='/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/')
 
     args = parser.parse_args()
 
@@ -45,6 +44,15 @@ def main():
         path_train_dataset = args.train
         name_train_dataset = path_train_dataset.split('.')[0].split('/')[-1]
         print('training dataset: ' + name_train_dataset)
+
+    # Choose testing dataset. dataset is a matrix, whose size is [num traces, sig_true + sig_input + sig_notch_filter]
+    #[9, 2500 + 2500 + 2500]
+    if args.test is None:
+        sys.exit("specify the path of the training dataset")
+    else:
+        path_test_dataset = args.test
+        name_test_dataset = path_test_dataset.split('.')[0].split('/')[-1]
+        print('test dataset: ' + name_test_dataset)
 
     # Load model
     if args.model is None:
@@ -58,7 +66,7 @@ def main():
     else:
         path_output = args.output
         path_figures = path_output + 'figures/'
-        path_models = path_output + 'Self_models/'
+        path_models = path_output + 'models/'
 
     # Parse input arguments END
 
@@ -76,6 +84,15 @@ def main():
     # extract traces
     data_traces = x
     data_traces = np.array(data_traces)
+
+    # Read the test dataset
+    f = h5py.File(path_test_dataset, 'r')
+
+    data_test = f['X']
+
+    # extract traces
+    data_test_traces = data_test
+    data_test_traces = np.array(data_test_traces)
 
     # Create Tensors to hold inputs and outputs
     from torch.autograd import Variable
@@ -112,7 +129,7 @@ def main():
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=False)
 
     # Train
-    epochs = 200
+    epochs = 100
     np.random.seed(1997)
     # random_array = np.random.randint(x.shape[0] * x.shape[1], size=(1, 25))
     for i, (x, true, sig_label) in enumerate(train_dl):
@@ -192,6 +209,85 @@ def main():
             plt.clf()
             plt.close()
         print('done plot loss')
+
+        # evaluation
+        trace_name = [
+        'trace_noise_10_sig_5',
+        'trace_noise_20_sig_5',
+        'trace_noise_50_sig_5',
+        'trace_noise_10_sig_10',
+        'trace_noise_20_sig_10',
+        'trace_noise_50_sig_10',
+        'trace_noise_10_sig_15',
+        'trace_noise_20_sig_15',
+        'trace_noise_50_sig_15'
+        ]
+
+        time_step = 0.002  # sample 2 ms
+        fs = 1 / time_step
+        time_range = 5  # signal length 5s at the time domain
+        time_vec = np.arange(0, time_range, time_step)
+        trace_fft = fftpack.fft(time_vec)
+
+        # sample freq
+        sample_freq = fftpack.fftfreq(trace_fft.size, d=time_step)
+
+        # recover tensor to numpy array
+        prediction_sig = pre_sig.squeeze(0).squeeze(0).cpu().detach().numpy()
+
+        # plot time domain
+        fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
+
+        axes[0].plot(time_vec, data_test_traces[i][len_sig:-len_sig])
+        axes[0].set_title('Input')
+
+        axes[1].plot(time_vec, data_test_traces[i][-len_sig:])
+        axes[1].set_title('Notch Filter')
+
+        axes[2].plot(time_vec, data_test_traces[i][0:len_sig])
+        axes[2].set_title('Ground Truth')
+
+        axes[3].plot(time_vec, prediction_sig)
+        axes[3].set_title('Prediction')
+        axes[3].set_xlabel('time')
+        axes[3].set_ylabel('amplitude')
+
+        title = trace_name[i]
+        fig.suptitle(title, verticalalignment='center')
+        fig.tight_layout()
+        plt.savefig(os.path.join(path_figures, title + '.png'))
+        plt.close(fig)
+        plt.cla()
+
+        # plot frequency domain
+        input_fft = fftpack.fft(data_test_traces[i][len_sig:-len_sig])
+        notch_fft = fftpack.fft(data_test_traces[i][-len_sig:])
+        gt_fft = fftpack.fft(data_test_traces[i][0:len_sig])
+        pre_sig_fft = fftpack.fft(prediction_sig)
+
+        fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
+
+        axes[0].plot(sample_freq[:401], abs(input_fft)[:401], label='Input')
+        axes[0].set_title('Input')
+
+        axes[1].plot(sample_freq[:401], abs(notch_fft)[:401], label='Notch Filter')
+        axes[1].set_title('Notch Filter')
+
+        axes[2].plot(sample_freq[:401], abs(gt_fft)[:401], label='Ground Truth')
+        axes[2].set_title('Ground Truth')
+
+        axes[3].plot(sample_freq[:401], abs(pre_sig_fft)[:401], label='Prediction')
+        axes[3].set_title('Prediction')
+
+        title = trace_name[i] + 'Power'
+        fig.suptitle(title, verticalalignment='center')
+        fig.tight_layout()
+        plt.savefig(os.path.join(path_figures, title + '.png'))
+        plt.close(fig)
+        plt.cla()
+
+
+
 
 if __name__ == "__main__":
     train  = '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5'
