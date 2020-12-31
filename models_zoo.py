@@ -5,7 +5,7 @@ __email__ = "yzi2@central.uh.edu"
 __version__ = "1.0.0"
 
 
-def models(name_model):
+def models(name_model, learn_ratio):
     """ This class defines neural networks modeling
         Set the necessary parameters for different models
         input:
@@ -93,7 +93,7 @@ def models(name_model):
         # case we will use self define Mean Squared Error (MSE) as  ur loss function.
         from Functions import my_powerline_loss1
         loss_func = my_powerline_loss1
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+        optimizer = torch.optim.Adam(model.parameters(), lr=learn_ratio)
 
     # %%
     elif name_model == "CNN20_AttenResUNet":  # !!! THis is for Time Domain Model

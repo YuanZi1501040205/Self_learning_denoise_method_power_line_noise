@@ -558,7 +558,7 @@ class GaussianBlurConv(nn.Module):
         x = F.conv1d(x, self.weight, padding=self.padding, stride=1, groups=self.channels)
         return x
 
-def my_powerline_loss1(pre_sig, pre_noise, sig_label, input):
+def my_powerline_loss1(pre_sig, pre_noise, sig_label, input, parameters):
     # parameters are the hyperparameters:
     #     alpha = 100
     #     beta = 1
@@ -620,10 +620,15 @@ regularizer2.L1 norm on the noise frequency domain"""
     R_noise_L1 = torch.sqrt(pre_noise_fft[:, 0]**2 + pre_noise_fft[:, 1]**2).mean()
 
 
-    alpha = 1000
-    beta = 1
-    lamda = 100
-    gamma = 10
+    # alpha = 1000
+    # beta = 1
+    # lamda = 100
+    # gamma = 10
+
+    alpha = parameters[0]
+    beta = parameters[1]
+    lamda = parameters[2]
+    gamma = parameters[3]
 
 
     # print('alpha * Loss_1: ', alpha * Loss_1)
