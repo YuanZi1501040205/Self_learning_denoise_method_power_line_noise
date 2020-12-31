@@ -595,21 +595,26 @@ regularizer2.L1 norm on the noise frequency domain"""
     # noise frequency spectrum: whole frequency spectrum is 0-500hz, the suspicious noise frequency is 5 hz.
     # Then loss0 = MSE(predicted signal fft(0-4Hz 6-500Hz), notch filter signal fft(0-4Hz 6-500Hz))
     MSEloss = nn.MSELoss()
-    pre_sig_reshape = pre_sig.squeeze(0).squeeze(0).reshape(int(pre_sig.__len__() / 2), 2)
+    pre_sig_reshape = pre_sig.squeeze(0).squeeze(0)
+    pre_sig_reshape = pre_sig.reshape(int(pre_sig_reshape.__len__() / 2), 2)
     pre_sig_fft = torch.fft(pre_sig_reshape, 1)
 
-    sig_label_reshape = sig_label.squeeze(0).squeeze(0).reshape(int(sig_label.__len__() / 2), 2)
+    sig_label_reshape = sig_label.squeeze(0).squeeze(0)
+    sig_label_reshape = sig_label_reshape.reshape(int(sig_label_reshape.__len__() / 2), 2)
     sig_label_fft = torch.fft(sig_label_reshape, 1)
 
     sig_label_fft_power = torch.sqrt(sig_label_fft[:, 0] ** 2 + sig_label_fft[:, 1] ** 2)
     sig_label_fft_power = sig_label_fft_power.cpu().detach().numpy()
-    f_suspicious_noise = sample_freq(np.argmax(sig_label_fft_power))
-    f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - 1)
-    f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + 1)
+    f_suspicious_noise = sample_freq[np.argmax(sig_label_fft_power)]
+    f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - 1)[0][0]
+    f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + 1)[0][0]
 
-    for idx in range()
-    # pre_sig_fft =
-    # Loss_0 = MSEloss(input, pre_sig + pre_noise)
+    for idx in range(f_suspicious_noise_l_index, f_suspicious_noise_r_index + 1):
+        pre_sig_fft = pre_sig_fft[torch.arange(pre_sig_fft.size(0)) != idx]
+        sig_label_fft = sig_label_fft[torch.arange(sig_label_fft.size(0)) != idx]
+
+    Loss_0 = MSEloss(pre_sig_fft, sig_label_fft)
+
 
     # Loss 1: signal prediction + noise prediction = original input(real signal + real noise)
 
@@ -668,7 +673,7 @@ regularizer2.L1 norm on the noise frequency domain"""
     # print('beta * Loss_2: ', beta * Loss_2)
     # print('lamda * R_sig_L2: ', lamda * R_sig_L2)
     # print('gamma * R_noise_L1: ', gamma * R_noise_L1)
-    loss = alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
+    loss = Loss_0 + alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
     return loss
 
 def my_loss_f1(y_pred, y):

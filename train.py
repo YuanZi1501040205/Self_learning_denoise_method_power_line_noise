@@ -30,10 +30,13 @@ def main(argv):
 
 
     parser = ArgumentParser()
-    parser.add_argument("-train", help="specify the path of the training dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
-    parser.add_argument("-test", help="specify the path of the testing dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
+    parser.add_argument("-train", help="specify the path of the training dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
+    parser.add_argument("-test", help="specify the path of the testing dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
+    # parser.add_argument("-train", help="specify the path of the training dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
+    # parser.add_argument("-test", help="specify the path of the testing dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     parser.add_argument("-model", help="Specify the model to train", default='HashResUNet1')
     parser.add_argument("-output", help="Specify the output path for storing the results", default='/homelocal/Self_learning_denoise_method_power_line_noise/output/')
+    # parser.add_argument("-output", help="Specify the output path for storing the results", default='/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/')
 
     args = parser.parse_args()
 
