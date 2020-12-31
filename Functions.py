@@ -576,10 +576,43 @@ regularizer2.L1 norm on the noise frequency domain"""
     import torch.nn as nn
     import cv2
     import torch.nn.functional as F
+    from scipy import fftpack
+    import numpy as np
     from pytorch_stats_loss import torch_wasserstein_loss
 
-    # Loss 1: signal prediction + noise prediction = original input(real signal + real noise)
+    # parameters
+    time_step = 0.002  # sample 2 ms
+    fs = 1 / time_step
+    f_max = int(fs/2)
+    time_range = 5  # signal length 5s at the time domain
+    time_vec = np.arange(0, time_range, time_step)
+    trace_fft = fftpack.fft(time_vec)
+
+    # sample freq
+    sample_freq = fftpack.fftfreq(trace_fft.size, d=time_step)
+
+    # Loss 0: signal prediction fft should be the same as the notch filter signal subtracted near suspicious power line
+    # noise frequency spectrum: whole frequency spectrum is 0-500hz, the suspicious noise frequency is 5 hz.
+    # Then loss0 = MSE(predicted signal fft(0-4Hz 6-500Hz), notch filter signal fft(0-4Hz 6-500Hz))
     MSEloss = nn.MSELoss()
+    pre_sig_reshape = pre_sig.squeeze(0).squeeze(0).reshape(int(pre_sig.__len__() / 2), 2)
+    pre_sig_fft = torch.fft(pre_sig_reshape, 1)
+
+    sig_label_reshape = sig_label.squeeze(0).squeeze(0).reshape(int(sig_label.__len__() / 2), 2)
+    sig_label_fft = torch.fft(sig_label_reshape, 1)
+
+    sig_label_fft_power = torch.sqrt(sig_label_fft[:, 0] ** 2 + sig_label_fft[:, 1] ** 2)
+    sig_label_fft_power = sig_label_fft_power.cpu().detach().numpy()
+    f_suspicious_noise = sample_freq(np.argmax(sig_label_fft_power))
+    f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - 1)
+    f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + 1)
+
+    for idx in range()
+    # pre_sig_fft =
+    # Loss_0 = MSEloss(input, pre_sig + pre_noise)
+
+    # Loss 1: signal prediction + noise prediction = original input(real signal + real noise)
+
     Loss_1 = MSEloss(input, pre_sig + pre_noise)
 
     # Loss 2: Wasserstein loss of (notch filter->down sample->gaussian blur signal, predicted signal-down sample-
@@ -606,17 +639,17 @@ regularizer2.L1 norm on the noise frequency domain"""
     d_sig_label = d_sig_label.to(device=pre_sig.device)
     db_pre_sig = F.conv1d(d_pre_sig, cv2_kernel, padding=padding, stride=1, groups=channels)
     db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
-    # Loss_2 = MSEloss(db_sig_label, db_pre_sig) # try MSE first
-    Loss_2 = torch_wasserstein_loss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
+    Loss_2 = MSEloss(db_sig_label, db_pre_sig) # try MSE first
+    # Loss_2 = torch_wasserstein_loss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
 
-    # regularizer1: L2 norm on signal time domain
+    # regularizer 1: L2 norm on signal time domain
     pre_sig = pre_sig.squeeze(0).squeeze(0)
-    R_sig_L2 = (pre_sig**2).mean()/torch.abs(pre_sig).max()
+    R_sig_L2 = (pre_sig**2).mean()
 
-    # regularizer2: L1 norm on the noise frequency domain
+    # regularizer 2: L1 norm on the noise frequency domain
     pre_noise = pre_noise.squeeze(0).squeeze(0)
     pre_noise_reshape = pre_noise.reshape(int(pre_noise.__len__() / 2), 2)
-    pre_noise_fft = torch.fft(pre_noise_reshape, 1, normalized=True)
+    pre_noise_fft = torch.fft(pre_noise_reshape, 1)
     R_noise_L1 = torch.sqrt(pre_noise_fft[:, 0]**2 + pre_noise_fft[:, 1]**2).mean()
 
 

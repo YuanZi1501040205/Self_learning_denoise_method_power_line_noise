@@ -30,15 +30,15 @@ def main(argv):
 
 
     parser = ArgumentParser()
-    parser.add_argument("-train", help="specify the path of the training dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5')
+    parser.add_argument("-train", help="specify the path of the training dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     parser.add_argument("-test", help="specify the path of the testing dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     parser.add_argument("-model", help="Specify the model to train", default='HashResUNet1')
     parser.add_argument("-output", help="Specify the output path for storing the results", default='/homelocal/Self_learning_denoise_method_power_line_noise/output/')
 
     args = parser.parse_args()
 
-    # Choose training dataset. dataset is a matrix, whose size is [num traces, sig_true + sig_input + sig_ds_blur]
-    #[9, 2500 + 2500 + 500]
+    # Choose training dataset. dataset is a matrix, whose size is [num traces, sig_true + sig_input + sig_notch_filter]
+    #[9, 2500 + 2500 + 2500]
     if args.train is None:
         sys.exit("specify the path of the training dataset")
     else:
@@ -80,7 +80,7 @@ def main(argv):
 
     num_traces = x.shape[0]
     len_sig = 2500
-    len_sig_label = 500
+    len_sig_label = 2500
 
     # extract traces
     data_traces = x
@@ -134,162 +134,161 @@ def main(argv):
     np.random.seed(1997)
     # random_array = np.random.randint(x.shape[0] * x.shape[1], size=(1, 25))
     for i, (x, true, sig_label) in enumerate(train_dl):
-        if i == 3:
-            loss_fig = [[],
-                        [], ]  # create loss_fig to store train and validation loss during the epoch (epoch, train_loss, val_loss)
-            start_time = time.time()
-            # run the model for 20 epochs !!! epoch can be tuned
-            index_traces = i + 1
-            print('trace ' + str(index_traces))
 
-            # training part
+        loss_fig = [[],
+                    [], ]  # create loss_fig to store train and validation loss during the epoch (epoch, train_loss, val_loss)
+        start_time = time.time()
+        # run the model for 20 epochs !!! epoch can be tuned
+        index_traces = i + 1
+        print('trace ' + str(index_traces))
 
-            # Choose model from the models.py file
-            model, loss_func, optimizer = models(name_model, learn_ratio=argv[-1])
+        # training part
 
-            print('model: ' + name_model)
-            # assign GPU
-            os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-            model = model.to(device)
-            print("Using GPU: " + os.environ["CUDA_VISIBLE_DEVICES"])
-            model.train()
+        # Choose model from the models.py file
+        model, loss_func, optimizer = models(name_model, learn_ratio=argv[-1])
 
-            # load to GPU
-            x = Variable(x).to(device)
-            true = Variable(true).to(device)
-            sig_label = Variable(sig_label).to(device)
+        print('model: ' + name_model)
+        # assign GPU
+        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model = model.to(device)
+        print("Using GPU: " + os.environ["CUDA_VISIBLE_DEVICES"])
+        model.train()
 
-            # reshape to [batch, channel, length]
-            x = x.unsqueeze(1)
-            sig_label = sig_label.unsqueeze(1)
-            true = true.unsqueeze(1)
+        # load to GPU
+        x = Variable(x).to(device)
+        true = Variable(true).to(device)
+        sig_label = Variable(sig_label).to(device)
 
-            for epoch in range(1, epochs + 1):
-                optimizer.zero_grad()
+        # reshape to [batch, channel, length]
+        x = x.unsqueeze(1)
+        sig_label = sig_label.unsqueeze(1)
+        true = true.unsqueeze(1)
 
-                # 1. forward propagation
-                pre_sig, pre_noise = model(x)
+        for epoch in range(1, epochs + 1):
+            optimizer.zero_grad()
 
-                pre_sig = pre_sig.unsqueeze(1)
-                pre_noise = pre_noise.unsqueeze(1)
+            # 1. forward propagation
+            pre_sig, pre_noise = model(x)
 
-                # 2. loss calculation
+            pre_sig = pre_sig.unsqueeze(1)
+            pre_noise = pre_noise.unsqueeze(1)
 
-                loss = loss_func(pre_sig, pre_noise, sig_label, x, parameters)
-                loss = loss.to(device)
+            # 2. loss calculation
+            loss = loss_func(pre_sig, pre_noise, sig_label, x, parameters)
+            loss = loss.to(device)
 
-                # 3. backward propagation
-                loss.backward()
+            # 3. backward propagation
+            loss.backward()
 
-                # 4. weight optimization
-                optimizer.step()
+            # 4. weight optimization
+            optimizer.step()
 
-                # print the loss function to monitor the converge
-                print("Epoch:", epoch, "Training Loss: ", loss.item())
+            # print the loss function to monitor the converge
+            print("Epoch:", epoch, "Training Loss: ", loss.item())
 
-                # record loss for each epoch
-                loss_fig[0].append(epoch)
-                loss_fig[1].append(loss.item())
-            # check the time to train this trace
-            print("--- %s seconds ---" % (time.time() - start_time))
-            # save the model to the output file for reload
-            torch.save(model.state_dict(), path_models + name_model + '_' + name_train_dataset +'_trace_'+ str(index_traces) +  '_state_dict.pt')
-            # save the loss monitor figures
-            import matplotlib.pyplot as plt
-            with plt.style.context(['science', 'ieee', 'no-latex']):
-                fig, ax = plt.subplots()
-                plt.plot(loss_fig[0], loss_fig[1], label='Loss of train ' + name_train_dataset)
-                title = 'Loss of ' + name_model + ' trained on ' + name_train_dataset + ' trace ' + str(index_traces)
-                plt.title(title)
-                ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.4), shadow=True, ncol=2)
-                ax.set(xlabel='Epoch')
-                ax.set(ylabel='Loss')
-                ax.autoscale(tight=True)
-                fig.savefig(path_figures + title + '.png', dpi=300)
-                plt.cla()
-                plt.clf()
-                plt.close()
-            print('done plot loss')
-
-            # evaluation
-            trace_name = [
-            'trace_noise_10_sig_5',
-            'trace_noise_20_sig_5',
-            'trace_noise_50_sig_5',
-            'trace_noise_10_sig_10',
-            'trace_noise_20_sig_10',
-            'trace_noise_50_sig_10',
-            'trace_noise_10_sig_15',
-            'trace_noise_20_sig_15',
-            'trace_noise_50_sig_15'
-            ]
-
-            time_step = 0.002  # sample 2 ms
-            fs = 1 / time_step
-            time_range = 5  # signal length 5s at the time domain
-            time_vec = np.arange(0, time_range, time_step)
-            trace_fft = fftpack.fft(time_vec)
-
-            # sample freq
-            sample_freq = fftpack.fftfreq(trace_fft.size, d=time_step)
-
-            # recover tensor to numpy array
-            prediction_sig = pre_sig.squeeze(0).squeeze(0).cpu().detach().numpy()
-
-            # plot time domain
-            fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
-
-            axes[0].plot(time_vec, data_test_traces[i][len_sig:-len_sig])
-            axes[0].set_title('Input')
-
-            axes[1].plot(time_vec, data_test_traces[i][-len_sig:])
-            axes[1].set_title('Notch Filter')
-
-            axes[2].plot(time_vec, data_test_traces[i][0:len_sig])
-            axes[2].set_title('Ground Truth')
-
-            axes[3].plot(time_vec, prediction_sig)
-            axes[3].set_title('Prediction')
-            axes[3].set_xlabel('time')
-            axes[3].set_ylabel('amplitude')
-
-            title = trace_name[i]
-            fig.suptitle(title, verticalalignment='center')
-            fig.tight_layout()
-            plt.savefig(os.path.join(path_figures, title + '.png'))
-            plt.close(fig)
+            # record loss for each epoch
+            loss_fig[0].append(epoch)
+            loss_fig[1].append(loss.item())
+        # check the time to train this trace
+        print("--- %s seconds ---" % (time.time() - start_time))
+        # save the model to the output file for reload
+        torch.save(model.state_dict(), path_models + name_model + '_' + name_train_dataset +'_trace_'+ str(index_traces) +  '_state_dict.pt')
+        # save the loss monitor figures
+        import matplotlib.pyplot as plt
+        with plt.style.context(['science', 'ieee', 'no-latex']):
+            fig, ax = plt.subplots()
+            plt.plot(loss_fig[0], loss_fig[1], label='Loss of train ' + name_train_dataset)
+            title = 'Loss of ' + name_model + ' trained on ' + name_train_dataset + ' trace ' + str(index_traces)
+            plt.title(title)
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.4), shadow=True, ncol=2)
+            ax.set(xlabel='Epoch')
+            ax.set(ylabel='Loss')
+            ax.autoscale(tight=True)
+            fig.savefig(path_figures + title + '.png', dpi=300)
             plt.cla()
+            plt.clf()
+            plt.close()
+        print('done plot loss')
 
-            # plot frequency domain
-            input_fft = fftpack.fft(data_test_traces[i][len_sig:-len_sig])
-            notch_fft = fftpack.fft(data_test_traces[i][-len_sig:])
-            gt_fft = fftpack.fft(data_test_traces[i][0:len_sig])
-            pre_sig_fft = fftpack.fft(prediction_sig)
+        # evaluation
+        trace_name = [
+        'trace_noise_10_sig_5',
+        'trace_noise_20_sig_5',
+        'trace_noise_50_sig_5',
+        'trace_noise_10_sig_10',
+        'trace_noise_20_sig_10',
+        'trace_noise_50_sig_10',
+        'trace_noise_10_sig_15',
+        'trace_noise_20_sig_15',
+        'trace_noise_50_sig_15'
+        ]
 
-            fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
+        time_step = 0.002  # sample 2 ms
+        fs = 1 / time_step
+        time_range = 5  # signal length 5s at the time domain
+        time_vec = np.arange(0, time_range, time_step)
+        trace_fft = fftpack.fft(time_vec)
 
-            axes[0].plot(sample_freq[:401], abs(input_fft)[:401], label='Input')
-            axes[0].set_title('Input')
+        # sample freq
+        sample_freq = fftpack.fftfreq(trace_fft.size, d=time_step)
 
-            axes[1].plot(sample_freq[:401], abs(notch_fft)[:401], label='Notch Filter')
-            axes[1].set_title('Notch Filter')
+        # recover tensor to numpy array
+        prediction_sig = pre_sig.squeeze(0).squeeze(0).cpu().detach().numpy()
 
-            axes[2].plot(sample_freq[:401], abs(gt_fft)[:401], label='Ground Truth')
-            axes[2].set_title('Ground Truth')
+        # plot time domain
+        fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
 
-            axes[3].plot(sample_freq[:401], abs(pre_sig_fft)[:401], label='Prediction')
-            axes[3].set_title('Prediction')
+        axes[0].plot(time_vec, data_test_traces[i][len_sig:-len_sig])
+        axes[0].set_title('Input')
 
-            title = trace_name[i] + 'Power'
-            fig.suptitle(title, verticalalignment='center')
-            fig.tight_layout()
-            plt.savefig(os.path.join(path_figures, title + '.png'))
-            plt.close(fig)
-            plt.cla()
+        axes[1].plot(time_vec, data_test_traces[i][-len_sig:])
+        axes[1].set_title('Notch Filter')
+
+        axes[2].plot(time_vec, data_test_traces[i][0:len_sig])
+        axes[2].set_title('Ground Truth')
+
+        axes[3].plot(time_vec, prediction_sig)
+        axes[3].set_title('Prediction')
+        axes[3].set_xlabel('time')
+        axes[3].set_ylabel('amplitude')
+
+        title = trace_name[i]
+        fig.suptitle(title, verticalalignment='center')
+        fig.tight_layout()
+        plt.savefig(os.path.join(path_figures, title + '.png'))
+        plt.close(fig)
+        plt.cla()
+
+        # plot frequency domain
+        input_fft = fftpack.fft(data_test_traces[i][len_sig:-len_sig])
+        notch_fft = fftpack.fft(data_test_traces[i][-len_sig:])
+        gt_fft = fftpack.fft(data_test_traces[i][0:len_sig])
+        pre_sig_fft = fftpack.fft(prediction_sig)
+
+        fig, axes = plt.subplots(4, 1, sharex=True, sharey=True)
+
+        axes[0].plot(sample_freq[:401], abs(input_fft)[:401], label='Input')
+        axes[0].set_title('Input')
+
+        axes[1].plot(sample_freq[:401], abs(notch_fft)[:401], label='Notch Filter')
+        axes[1].set_title('Notch Filter')
+
+        axes[2].plot(sample_freq[:401], abs(gt_fft)[:401], label='Ground Truth')
+        axes[2].set_title('Ground Truth')
+
+        axes[3].plot(sample_freq[:401], abs(pre_sig_fft)[:401], label='Prediction')
+        axes[3].set_title('Prediction')
+
+        title = trace_name[i] + 'Power'
+        fig.suptitle(title, verticalalignment='center')
+        fig.tight_layout()
+        plt.savefig(os.path.join(path_figures, title + '.png'))
+        plt.close(fig)
+        plt.cla()
 
 
-            score = np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2)
+        score = np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2)
 
     return score
 
@@ -298,29 +297,32 @@ def main(argv):
 
 if __name__ == "__main__":
     import sys
-    alpha = [0.001, 0.01, 0.1, 1]
-    beta = [0.001, 0.01, 0.1, 1]
-    lamda = [0.001, 0.01, 0.1, 1]
-    gamma = [0.001, 0.01, 0.1, 1]
-    learn_ratio = [0.001, 0.01, 0.1, 1]
-    best_parameter = [0, 0, 0, 0, 0]
-    best_score = float("inf")
-    for a in alpha:
-        for b in beta:
-            for l in lamda:
-                for g in gamma:
-                    for lr in learn_ratio:
-                        parameters = [a, b, l, g, lr]
-                        score = main(parameters)
-                        if score < best_score:
-                            best_score = score
-                            best_parameter = parameters
-    print('best_score: ', best_score)
-    print('best_alpha: ', best_parameter[0])
-    print('best_beta: ', best_parameter[1])
-    print('best_lamda: ', best_parameter[2])
-    print('best_gamma: ', best_parameter[3])
-    print('best_learn_ratio: ', best_parameter[4])
+    # alpha = [0.001, 0.01, 0.1, 1]
+    # beta = [0.001, 0.01, 0.1, 1]
+    # lamda = [0.000000001, 0.00000001, 0.0000001, 0.000001]
+    # gamma = [0.001, 0.01, 0.1, 1]
+    # learn_ratio = [0.001, 0.01, 0.1, 1]
+    best_parameter = [1, 1, 1, 0.01, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    parameters = best_parameter
+    score = main(parameters)
+    #
+    # best_score = float("inf")
+    # for a in alpha:
+    #     for b in beta:
+    #         for l in lamda:
+    #             for g in gamma:
+    #                 for lr in learn_ratio:
+    #                     parameters = [a, b, l, g, lr]
+    #                     score = main(parameters)
+    #                     if score < best_score:
+    #                         best_score = score
+    #                         best_parameter = parameters
+    # print('best_score: ', best_score)
+    # print('best_alpha: ', best_parameter[0])
+    # print('best_beta: ', best_parameter[1])
+    # print('best_lamda: ', best_parameter[2])
+    # print('best_gamma: ', best_parameter[3])
+    # print('best_learn_ratio: ', best_parameter[4])
 
 
 
