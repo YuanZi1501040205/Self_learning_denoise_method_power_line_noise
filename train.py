@@ -136,6 +136,8 @@ def main(argv):
     epochs = 300
     np.random.seed(1997)
     # random_array = np.random.randint(x.shape[0] * x.shape[1], size=(1, 25))
+    score = []
+    notch_score = []
     for i, (x, true, sig_label) in enumerate(train_dl):
 
         loss_fig = [[],
@@ -168,8 +170,6 @@ def main(argv):
         sig_label = sig_label.unsqueeze(1)
         true = true.unsqueeze(1)
 
-        score = []
-        notch_score = []
         for epoch in range(1, epochs + 1):
             optimizer.zero_grad()
 
@@ -286,8 +286,7 @@ def main(argv):
 
 
         score.append(np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2))
-        notch_score.append(np.mean((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2)# notch - gt
-
+        notch_score.append(np.mean((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2))# notch - gt
     return score, notch_score
 
 
@@ -313,13 +312,25 @@ if __name__ == "__main__":
                     for s in suspicious_radium:
                         for lr in learn_ratio:
                             parameters = [a, b, l, g,s, lr]
-                            score, notch_score= main(parameters)
+                            score, notch_score = main(parameters)
                             for i in range(3):
                                 if score[i] < best_score[i]:
                                     best_score[i] = score[i]
                                     best_parameter[i] = parameters
     print('best_score: ', best_score)
     print('best_parameter: ', best_parameter)
+    f2 = open('/tmp/test.txt','r+')
+    f2.read()
+    f2.write('\nbest score')
+    for i in range(3):
+        f2.write('\n' + best_score[i])
+    f2.write('\nnotch score')
+    for i in range(3):
+        f2.write('\n' + notch_score[i])
+    f2.write('\nbest_parameter')
+    for i in range(3):
+        f2.write('\n' + best_parameter[i])
+    f2.close()
 
 
 
