@@ -606,8 +606,9 @@ regularizer2.L1 norm on the noise frequency domain"""
     sig_label_fft_power = torch.sqrt(sig_label_fft[:, 0] ** 2 + sig_label_fft[:, 1] ** 2)
     sig_label_fft_power = sig_label_fft_power.cpu().detach().numpy()
     f_suspicious_noise = sample_freq[np.argmax(sig_label_fft_power)]
-    f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - 1)[0][0]
-    f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + 1)[0][0]
+    suspicious_radium = parameters[4]
+    f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - suspicious_radium)[0][0]
+    f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + suspicious_radium)[0][0]
 
     for idx in range(f_suspicious_noise_l_index, f_suspicious_noise_r_index + 1):
         pre_sig_fft = pre_sig_fft[torch.arange(pre_sig_fft.size(0)) != idx]

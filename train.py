@@ -30,8 +30,8 @@ def main(argv):
 
 
     parser = ArgumentParser()
-    parser.add_argument("-train", help="specify the path of the training dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
-    parser.add_argument("-test", help="specify the path of the testing dataset", default= '/homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
+    parser.add_argument("-train", help="specify the path of the training dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/figures/drift_power_line_dataset_3.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
+    parser.add_argument("-test", help="specify the path of the testing dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/figures/drift_power_line_dataset_3.h5') # /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5
     # parser.add_argument("-train", help="specify the path of the training dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     # parser.add_argument("-test", help="specify the path of the testing dataset", default= '/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5')
     parser.add_argument("-model", help="Specify the model to train", default='HashResUNet1')
@@ -168,6 +168,8 @@ def main(argv):
         sig_label = sig_label.unsqueeze(1)
         true = true.unsqueeze(1)
 
+        score = []
+        notch_score = []
         for epoch in range(1, epochs + 1):
             optimizer.zero_grad()
 
@@ -215,17 +217,9 @@ def main(argv):
         print('done plot loss')
 
         # evaluation
-        trace_name = [
-        'trace_noise_10_sig_5',
-        'trace_noise_20_sig_5',
-        'trace_noise_50_sig_5',
-        'trace_noise_10_sig_10',
-        'trace_noise_20_sig_10',
-        'trace_noise_50_sig_10',
-        'trace_noise_10_sig_15',
-        'trace_noise_20_sig_15',
-        'trace_noise_50_sig_15'
-        ]
+        trace_name = ['BP_4_93',
+                       'Marmousi_108_123',
+                       'Marmousi_158_147']
 
         time_step = 0.002  # sample 2 ms
         fs = 1 / time_step
@@ -291,41 +285,41 @@ def main(argv):
         plt.cla()
 
 
-        score = np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2)
+        score.append(np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2))
+        notch_score.append(np.mean((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2)# notch - gt
 
-    return score
+    return score, notch_score
 
 
 
 
 if __name__ == "__main__":
     import sys
-    # alpha = [0.001, 0.01, 0.1, 1]
-    # beta = [0.001, 0.01, 0.1, 1]
-    # lamda = [0.000000001, 0.00000001, 0.0000001, 0.000001]
-    # gamma = [0.001, 0.01, 0.1, 1]
-    # learn_ratio = [0.001, 0.01, 0.1, 1]
-    best_parameter = [1, 1, 1, 0.01, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
-    parameters = best_parameter
-    score = main(parameters)
-    #
-    # best_score = float("inf")
-    # for a in alpha:
-    #     for b in beta:
-    #         for l in lamda:
-    #             for g in gamma:
-    #                 for lr in learn_ratio:
-    #                     parameters = [a, b, l, g, lr]
-    #                     score = main(parameters)
-    #                     if score < best_score:
-    #                         best_score = score
-    #                         best_parameter = parameters
-    # print('best_score: ', best_score)
-    # print('best_alpha: ', best_parameter[0])
-    # print('best_beta: ', best_parameter[1])
-    # print('best_lamda: ', best_parameter[2])
-    # print('best_gamma: ', best_parameter[3])
-    # print('best_learn_ratio: ', best_parameter[4])
+    alpha = [0.001, 0.01, 0.1, 1]
+    beta = [0.001, 0.01, 0.1, 1]
+    lamda = [0.000000001, 0.00000001, 0.0000001, 0.000001]
+    gamma = [0.001, 0.01, 0.1, 1]
+    suspicious_radium = [1, 2, 3]
+    learn_ratio = [0.001, 0.01, 0.1, 1]
+    # best_parameter = [1, 1, 1, 0.01, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    # parameters = best_parameter
+    # score = main(parameters)
+    best_parameter = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+    best_score = [float("inf"), float("inf"), float("inf")]
+    for a in alpha:
+        for b in beta:
+            for l in lamda:
+                for g in gamma:
+                    for s in suspicious_radium:
+                        for lr in learn_ratio:
+                            parameters = [a, b, l, g,s, lr]
+                            score, notch_score= main(parameters)
+                            for i in range(3):
+                                if score[i] < best_score[i]:
+                                    best_score[i] = score[i]
+                                    best_parameter[i] = parameters
+    print('best_score: ', best_score)
+    print('best_parameter: ', best_parameter)
 
 
 
