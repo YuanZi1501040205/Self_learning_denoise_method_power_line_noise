@@ -634,8 +634,8 @@ regularizer2.L1 norm on the noise frequency domain"""
     d_pre_sig = d_pre_sig.squeeze(0)
 
     # gaussian blur
-    sigma = 5
-    kernel_size = 35
+    sigma = 15
+    kernel_size = 55
     cv2_kernel = cv2.getGaussianKernel(kernel_size, sigma)
     cv2_kernel = cv2_kernel.squeeze(1)
     cv2_kernel = torch.from_numpy(cv2_kernel).unsqueeze(0).unsqueeze(0).type(torch.FloatTensor).to(device=pre_sig.device)
@@ -668,13 +668,14 @@ regularizer2.L1 norm on the noise frequency domain"""
     beta = parameters[1]
     lamda = parameters[2]
     gamma = parameters[3]
+    notch_weight = parameters[5]
 
 
     # print('alpha * Loss_1: ', alpha * Loss_1)
     # print('beta * Loss_2: ', beta * Loss_2)
     # print('lamda * R_sig_L2: ', lamda * R_sig_L2)
     # print('gamma * R_noise_L1: ', gamma * R_noise_L1)
-    loss = Loss_0 + alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
+    loss = notch_weight * Loss_0 + alpha * Loss_1 + beta * Loss_2 + lamda * R_sig_L2 + gamma * R_noise_L1
     return loss
 
 def my_loss_f1(y_pred, y):

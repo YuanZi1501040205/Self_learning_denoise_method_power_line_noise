@@ -294,32 +294,34 @@ def main(argv):
 
 if __name__ == "__main__":
     import sys
-    alpha = [0.001, 0.01, 0.1, 1]
-    beta = [0.001, 0.01, 0.1, 1]
-    lamda = [0.000000001, 0.00000001, 0.0000001, 0.000001]
-    gamma = [0.001, 0.01, 0.1, 1]
+    alpha = [0, 0.01, 0.1, 1]
+    beta = [0, 0.01, 0.1, 1]
+    lamda = [0, 0.00000001, 0.0000001, 0.000001]
+    gamma = [0, 0.001, 0.01, 0.1, 1]
     suspicious_radium = [1, 2, 3]
+    notch_weight = [0, 0.01, 0.1, 1]
     learn_ratio = [0.001, 0.01, 0.1, 1]
     # best_parameter = [1, 1, 1, 0.01, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
     # parameters = best_parameter
     # score = main(parameters)
-    best_parameter = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+    best_parameter = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
     best_score = [float("inf"), float("inf"), float("inf")]
     for a in alpha:
         for b in beta:
             for l in lamda:
                 for g in gamma:
                     for s in suspicious_radium:
-                        for lr in learn_ratio:
-                            parameters = [a, b, l, g,s, lr]
-                            score, notch_score = main(parameters)
-                            for i in range(3):
-                                if score[i] < best_score[i]:
-                                    best_score[i] = score[i]
-                                    best_parameter[i] = parameters
+                        for n in notch_weight:
+                            for lr in learn_ratio:
+                                parameters = [a, b, l, g, s, n, lr]
+                                score, notch_score = main(parameters)
+                                for i in range(3):
+                                    if score[i] < best_score[i]:
+                                        best_score[i] = score[i]
+                                        best_parameter[i] = parameters
     print('best_score: ', best_score)
     print('best_parameter: ', best_parameter)
-    f2 = open('/tmp/test.txt','r+')
+    f2 = open('./best_parameters_log.txt','r+')
     f2.read()
     f2.write('\nbest score')
     for i in range(3):
