@@ -2,6 +2,7 @@
 
 # Example Usage: python train.py -train /home/yzi/research/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -model HashResUNet1 -output /home/yzi/research/Self_learning_denoise_method_power_line_noise/
 # python train.py -train /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9.h5 -test /homelocal/Self_learning_denoise_method_power_line_noise/output/datasets/Self_Syn_harmonic_dataset_9_test.h5 -model HashResUNet1 -output /homelocal/Self_learning_denoise_method_power_line_noise/output/
+#python train.py -train ./output/datasets/drift_power_line_dataset_3_hard.h5 -test ./output/datasets/drift_power_line_dataset_3_hard.h5 -model HashResUNet1 -output ./output/
 __author__ = "Yuan Zi"
 __email__ = "yzi2@central.uh.edu"
 __version__ = "1.0.0"
@@ -139,7 +140,6 @@ def main(argv):
     score = []
     notch_score = []
     for i, (x, true, sig_label) in enumerate(train_dl):
-
         loss_fig = [[],
                     [], ]  # create loss_fig to store train and validation loss during the epoch (epoch, train_loss, val_loss)
         start_time = time.time()
@@ -154,7 +154,7 @@ def main(argv):
 
         print('model: ' + name_model)
         # assign GPU
-        os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = model.to(device)
         print("Using GPU: " + os.environ["CUDA_VISIBLE_DEVICES"])
@@ -285,6 +285,32 @@ def main(argv):
         plt.cla()
 
 
+        # plot time results overlap
+        title = "Time Prediction Result " + trace_name[i]
+        plt.ylabel('Amplitude')
+        plt.xlabel('Time [s]')
+        plt.plot(time_vec[1000: 1500], data_test_traces[i][0:len_sig][1000: 1500], label='ground truth')
+        plt.plot(time_vec[1000: 1500], data_test_traces[i][-len_sig:][1000: 1500], label='notch filter')
+        plt.plot(time_vec[1000: 1500], prediction_sig[1000: 1500], label='prediction')
+        plt.title(title)
+        plt.legend()
+        plt.savefig(path_figures + title + '.png')
+        plt.cla()
+        plt.close()
+
+        # plot frequency results overlap
+        title = "Frequency Prediction Result " + trace_name[i]
+        plt.ylabel('Power')
+        plt.xlabel('Frequency [hz]')
+        plt.plot(sample_freq[:401], abs(gt_fft)[:401], label='Ground Truth')
+        plt.plot(sample_freq[:401], abs(notch_fft)[:401], label='Notch Filter')
+        plt.plot(sample_freq[:401], abs(pre_sig_fft)[:401], label='Prediction')
+        plt.title(title)
+        plt.legend()
+        plt.savefig(path_figures + title + '.png')
+        plt.cla()
+        plt.close()
+
         score.append(np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2))
         notch_score.append(np.mean((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2))# notch - gt
     return score, notch_score
@@ -294,16 +320,20 @@ def main(argv):
 
 if __name__ == "__main__":
     import sys
-    alpha = [0, 0.01, 0.1, 1]
-    beta = [0, 0.01, 0.1, 1]
-    lamda = [0, 0.00000001, 0.0000001, 0.000001]
-    gamma = [0, 0.001, 0.01, 0.1, 1]
-    suspicious_radium = [1, 2, 3]
-    notch_weight = [0, 0.01, 0.1, 1]
-    learn_ratio = [0.001, 0.01, 0.1, 1]
-    # best_parameter = [1, 1, 1, 0.01, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    alpha = [0]
+    beta = [0, 0.001, 0.01]
+    lamda = [0, 0.0000001, 0.1]
+    gamma = [0, 0.001, 0.01]
+    suspicious_radium = [2, 3, 5]
+    notch_weight = [0, 0.1, 1, 10]
+    learn_ratio = [0.001, 0.01, 0.1]
+
+    # best_parameter = [0, 0, 1e-07, 0.01, 3, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
     # parameters = best_parameter
-    # score = main(parameters)
+    # score, notch_score = main(parameters)
+    # print('score: ', score)
+    # print('notch_score: ', notch_score)
+
     best_parameter = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
     best_score = [float("inf"), float("inf"), float("inf")]
     for a in alpha:
@@ -320,6 +350,7 @@ if __name__ == "__main__":
                                         best_score[i] = score[i]
                                         best_parameter[i] = parameters
     print('best_score: ', best_score)
+    print('notch_score: ', notch_score)
     print('best_parameter: ', best_parameter)
     f2 = open('./best_parameters_log.txt','r+')
     f2.read()
