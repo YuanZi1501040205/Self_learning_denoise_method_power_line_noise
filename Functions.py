@@ -604,13 +604,22 @@ regularizer2.L1 norm on the noise frequency domain"""
     sig_label_fft = torch.fft(sig_label_reshape, 1)
 
     sig_label_fft_power = torch.sqrt(sig_label_fft[:, 0] ** 2 + sig_label_fft[:, 1] ** 2)
-    sig_label_fft_power = sig_label_fft_power.cpu().detach().numpy()
-    f_suspicious_noise = sample_freq[np.argmax(sig_label_fft_power)]
+    # sig_label_fft_power = sig_label_fft_power.cpu().detach().numpy()
+    f_suspicious_noise = 21
     suspicious_radium = parameters[4]
     f_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise - suspicious_radium)[0][0]
     f_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise + suspicious_radium)[0][0]
 
+    f_suspicious_noise_2 = 51
+    suspicious_radium = parameters[4]
+    f_2_suspicious_noise_l_index = np.where(sample_freq == f_suspicious_noise_2 - suspicious_radium)[0][0]
+    f_2_suspicious_noise_r_index = np.where(sample_freq == f_suspicious_noise_2 + suspicious_radium)[0][0]
+
     for idx in range(f_suspicious_noise_l_index, f_suspicious_noise_r_index + 1):
+        pre_sig_fft = pre_sig_fft[torch.arange(pre_sig_fft.size(0)) != idx]
+        sig_label_fft = sig_label_fft[torch.arange(sig_label_fft.size(0)) != idx]
+
+    for idx in range(f_2_suspicious_noise_l_index, f_2_suspicious_noise_r_index + 1):
         pre_sig_fft = pre_sig_fft[torch.arange(pre_sig_fft.size(0)) != idx]
         sig_label_fft = sig_label_fft[torch.arange(sig_label_fft.size(0)) != idx]
 
@@ -634,8 +643,8 @@ regularizer2.L1 norm on the noise frequency domain"""
     d_pre_sig = d_pre_sig.squeeze(0)
 
     # gaussian blur
-    sigma = 15
-    kernel_size = 55
+    sigma = 13 # 15
+    kernel_size = 5 # 55
     cv2_kernel = cv2.getGaussianKernel(kernel_size, sigma)
     cv2_kernel = cv2_kernel.squeeze(1)
     cv2_kernel = torch.from_numpy(cv2_kernel).unsqueeze(0).unsqueeze(0).type(torch.FloatTensor).to(device=pre_sig.device)
@@ -646,7 +655,10 @@ regularizer2.L1 norm on the noise frequency domain"""
     db_pre_sig = F.conv1d(d_pre_sig, cv2_kernel, padding=padding, stride=1, groups=channels)
     db_sig_label = F.conv1d(d_sig_label, cv2_kernel, padding=padding, stride=1, groups=channels)
     Loss_2 = MSEloss(db_sig_label, db_pre_sig) # try MSE first
-    # Loss_2 = torch_wasserstein_loss(db_sig_label.squeeze(0).squeeze(0), db_pre_sig.squeeze(0).squeeze(0))  # or use the Wasserstein loss
+
+    # db_sig_label_distribution = db_sig_label.squeeze(0).squeeze(0)/torch.sum(db_sig_label.squeeze(0).squeeze(0))
+    # db_pre_sig_distribution = db_pre_sig.squeeze(0).squeeze(0) / torch.sum(db_pre_sig.squeeze(0).squeeze(0))
+    # Loss_2 = torch_wasserstein_loss(db_sig_label_distribution, db_pre_sig_distribution)  # or use the Wasserstein loss
 
     # regularizer 1: L2 norm on signal time domain
     pre_sig = pre_sig.squeeze(0).squeeze(0)
