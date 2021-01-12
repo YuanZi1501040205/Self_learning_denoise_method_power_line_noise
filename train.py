@@ -289,9 +289,9 @@ def main(argv):
         title = "Time Prediction Result " + trace_name[i]
         plt.ylabel('Amplitude')
         plt.xlabel('Time [s]')
-        plt.plot(time_vec[1000: 1500], data_test_traces[i][0:len_sig][1000: 1500], label='ground truth')
-        plt.plot(time_vec[1000: 1500], data_test_traces[i][-len_sig:][1000: 1500], label='notch filter')
-        plt.plot(time_vec[1000: 1500], prediction_sig[1000: 1500], label='prediction')
+        plt.plot(time_vec[500: 1500], data_test_traces[i][0:len_sig][500: 1500], label='ground truth')
+        plt.plot(time_vec[500: 1500], data_test_traces[i][-len_sig:][500: 1500], label='notch filter')
+        plt.plot(time_vec[500: 1500], prediction_sig[500: 1500], label='prediction')
         plt.title(title)
         plt.legend()
         plt.savefig(path_figures + title + '.png')
@@ -320,15 +320,15 @@ def main(argv):
 
 if __name__ == "__main__":
     import sys
-    alpha = [0]
-    beta = [0, 0.001, 0.01]
-    lamda = [0, 0.0000001, 0.1]
-    gamma = [0, 0.001, 0.01]
-    suspicious_radium = [2, 3, 5]
-    notch_weight = [0, 0.1, 1, 10]
-    learn_ratio = [0.001, 0.01, 0.1]
+    alpha = [0.001, 0.01]
+    beta = [0.001, 0.01]
+    lamda = [0.00000001, 0.0000001, 0.000001]
+    gamma = [0.001, 0.01, 0.1,]
+    suspicious_radium = [0.5, 1, 5]
+    notch_weight = [0.1, 1, 10]
+    learn_ratio = [0.05, 0.1, 0.2]
 
-    # best_parameter = [0, 0, 1e-07, 0.01, 3, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    # best_parameter = [0.01, 0.01, 1e-06, 0.01, 1, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
     # parameters = best_parameter
     # score, notch_score = main(parameters)
     # print('score: ', score)
@@ -352,18 +352,19 @@ if __name__ == "__main__":
     print('best_score: ', best_score)
     print('notch_score: ', notch_score)
     print('best_parameter: ', best_parameter)
-    f2 = open('./best_parameters_log.txt','r+')
-    f2.read()
-    f2.write('\nbest score')
-    for i in range(3):
-        f2.write('\n' + best_score[i])
-    f2.write('\nnotch score')
-    for i in range(3):
-        f2.write('\n' + notch_score[i])
-    f2.write('\nbest_parameter')
-    for i in range(3):
-        f2.write('\n' + best_parameter[i])
-    f2.close()
+
+    # f2 = open('./best_parameters_log.txt','r+')
+    # f2.read()
+    # f2.write('\nbest score')
+    # for i in range(3):
+    #     f2.write('\n' + best_score[i])
+    # f2.write('\nnotch score')
+    # for i in range(3):
+    #     f2.write('\n' + notch_score[i])
+    # f2.write('\nbest_parameter')
+    # for i in range(3):
+    #     f2.write('\n' + best_parameter[i])
+    # f2.close()
 
 
 
