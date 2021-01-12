@@ -324,8 +324,8 @@ if __name__ == "__main__":
     beta = [0.001, 0.01]
     lamda = [0.00000001, 0.0000001, 0.000001]
     gamma = [0.001, 0.01, 0.1,]
-    suspicious_radium = [0.5, 1, 5]
-    notch_weight = [0.1, 1, 10]
+    suspicious_radium = [1, 5]
+    notch_weight = [0.2, 1, 10]
     learn_ratio = [0.05, 0.1, 0.2]
 
     # best_parameter = [0.01, 0.01, 1e-06, 0.01, 1, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
