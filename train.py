@@ -218,8 +218,8 @@ def main(argv):
 
         # evaluation
         trace_name = ['BP_4_93',
-                       'Marmousi_108_123',
-                       'Marmousi_158_147']
+                       'BP_26_26',
+                       'BP_49_50']
 
         time_step = 0.002  # sample 2 ms
         fs = 1 / time_step
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     # notch_weight = [0.2, 1, 10]
     # learn_ratio = [0.05, 0.1, 0.2]
 
-    best_parameter = [0.001, 0.01, 1e-06, 0.1, 1, 0.2, 0.2] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    best_parameter = [0.001, 0.001, 1e-06, 0.001, 4, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
     parameters = best_parameter
     score, notch_score = main(parameters)
     print('score: ', score)

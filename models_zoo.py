@@ -92,6 +92,10 @@ def models(name_model, learn_ratio):
         model = UNet(input_channels=1, bilinear=True)
         # case we will use self define Mean Squared Error (MSE) as  ur loss function.
         from Functions import my_powerline_loss1
+        # from Functions import my_powerline_base
+        # if learn_ratio == 0.1:
+        #     loss_func = my_powerline_base
+        # else:
         loss_func = my_powerline_loss1
         optimizer = torch.optim.Adam(model.parameters(), lr=learn_ratio)
 
