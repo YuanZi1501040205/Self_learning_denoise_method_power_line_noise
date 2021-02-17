@@ -106,11 +106,6 @@ def main(argv):
 
     data_train = data_traces
 
-    # adaptive filter
-    data_train = data_train.squeeze(1)
-    data_train = data_train.unsqueeze(0)
-    print('data_train: ', data_train.shape)
-
     # Preprocess END
 
     size_input = 2500

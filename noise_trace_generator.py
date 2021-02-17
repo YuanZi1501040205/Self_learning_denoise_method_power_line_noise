@@ -9,6 +9,20 @@ path_train_dataset = "/home/yzi/research/AGT_FWI_2020/datasets_AGT_FWI/Time_hdf5
 x, x_freq, length = load_dataset(path_train_dataset)
 data_traces = extract(x, length)
 # %%
+import h5py
+f = h5py.File('/home/yzi/research/Self_learning_denoise_method_power_line_noise/output/experiments/20210211/bp_3_adaptive.h5')
+sig1 = f['X'][:, 0][:2500]
+sig2 = f['X'][:, 1][:2500]
+sig3 = f['X'][:, 2][:2500]
+
+sig1_adaptive_filter = f['X'][:, 0][2500:5000]
+sig2_adaptive_filter = f['X'][:, 1][2500:5000]
+sig3_adaptive_filter = f['X'][:, 2][2500:5000]
+
+sig1_noise = f['X'][:, 0][-2500:]
+sig2_noise = f['X'][:, 1][-2500:]
+sig3_noise = f['X'][:, 2][-2500:]
+# %%
 time_step = 0.002  # sample 2 ms
 fs = 1 / time_step
 time_range = 5  # signal length 5s at the time domain
@@ -71,14 +85,15 @@ plt.cla()
 plt.close()
 #%%plot signal fft power
 from scipy import fftpack
+import matplotlib.pyplot as plt
 import numpy as np
 name_traces = ['BP_4_93',
-               'BP_26_20',
-               'BP_49_50']
+               'BP_24_46',
+               'BP_52_10']
 
-sigs = [sig1[2500:],
-        sig2[2500:],
-        sig3[2500:]]
+sigs = [sig1,
+        sig2,
+        sig3]
 
 for i in range(3):
     trace_fft = fftpack.fft(sigs[i])
@@ -191,34 +206,33 @@ for i in range(3):
     plt.close()
 
 
-
 # %% plot notch filter
 from scipy import signal
 from scipy.signal import filtfilt
 import matplotlib.pyplot as plt
 import numpy as np
 import copy
-Q = 9 # 9
+Q = 12 # 9
 time_step = 0.002  # sample 2 ms
 fs = 1 / time_step
-f20_notch = 21 # 20.8 - 21.1 hz
-f50_notch = 51 # 50.8 & 51 hz
+f20_notch = 25 # 20.8 - 21.1 hz
+
 title = "Notch Filter Frequency Response"
 b, a = signal.iirnotch(f20_notch, Q, fs)
-b_, a_ = signal.iirnotch(f50_notch, Q, fs)
+
 # Frequency response
 w, h = signal.freqz(b, a)
-w_, h_ = signal.freqz(b_, a_)
+
 # Generate frequency axis
 freq = w*fs/(2*np.pi)
 # Plot
 fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 ax.plot(freq, 20*np.log10(abs(h)), color='blue')
-ax.plot(freq, 20*np.log10(abs(h_)), color='blue')
+
 ax.set_title(title)
 ax.set_ylabel("Amplitude (dB)", color='blue')
 ax.set_xlim([0, 100])
-ax.set_ylim([-50, 10])
+ax.set_ylim([-20, 10])
 ax.grid()
 plt.xticks(np.arange(1,100,5))
 ax.set_xlabel("Frequency (Hz)")
@@ -230,20 +244,24 @@ plt.show()
 
 
 
+# %%
+f_est = [24.9985, 25.0028, 25.0023]
+sigs = [sig1, sig2, sig3]
+sig_noise_trace = [sig1_noise, sig2_noise, sig3_noise]
 # %% notch filter
 from scipy import signal
 from scipy.signal import filtfilt
 
 fs = 1/time_step
-Q = 9
+Q = 12
 sig_notch_filter = []
 sig_notch_filter_fft = []
 for i in range(3):
-    f20_notch = 21 # 20.8 - 21.1 hz
-    f50_notch = 51 # 50.8 & 51 hz
+    f20_notch = f_est[i] # 20.8 - 21.1 hz
     b, a = signal.iirnotch(f20_notch, Q, fs)
     sig_filter20 = filtfilt(b, a, sig_noise_trace[i])
-    b, a = signal.iirnotch(f50_notch, Q, fs)
+    sig_notch_filter.append(sig_filter20)
+
     # plot time domain
     plt.plot(time_vec, sigs[i], label='ground truth')
     plt.plot(time_vec, sig_notch_filter[i], label='notch filter')
@@ -273,6 +291,7 @@ for i in range(3):
     plt.show()
     plt.cla()
     plt.close()
+    print('mse: ', sum((sigs[i] - sig_notch_filter[i])**2))
 
 # %% down sample signal after notch filter
 import cv2
@@ -299,7 +318,7 @@ for i in range(3):
 import cv2
 sig_filter_ds_blur = []
 kernel_size = (5, 1)
-sigma = 13
+sigma = 1
 for i in range(3):
     img = cv2.GaussianBlur(sig_filter_ds[i].reshape(1, sig_filter_ds[i].shape[0]), kernel_size, sigma)
     img = img.reshape(sig_filter_ds[i].shape[0])
@@ -355,9 +374,7 @@ for i in range(len_trace):
 X = np.array(X)
 # Write the dataset to HDF5 file
 
-sig_notch_filter.append(filtfilt(b, a, sig_filter20))
-
-name_data = 'drift_power_line_dataset_BP3'
+name_data = 'drift_power_line_dataset_BP3_niu_year'
 
 f = h5py.File(path_save + name_data + '.h5', 'w')
 f.create_dataset('X', data=X)
