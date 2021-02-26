@@ -139,6 +139,8 @@ def main(argv):
     # random_array = np.random.randint(x.shape[0] * x.shape[1], size=(1, 25))
     score = []
     notch_score = []
+
+    X = []
     for i, (x, true, sig_label) in enumerate(train_dl):
         loss_fig = [[],
                     [], ]  # create loss_fig to store train and validation loss during the epoch (epoch, train_loss, val_loss)
@@ -298,6 +300,9 @@ def main(argv):
         plt.cla()
         plt.close()
 
+        # output prediction result
+        X.append(prediction_sig)
+
         # plot frequency results overlap
         title = "Frequency Prediction Result " + trace_name[i]
         plt.ylabel('Power')
@@ -311,8 +316,16 @@ def main(argv):
         plt.cla()
         plt.close()
 
-        score.append(np.mean((prediction_sig - data_test_traces[i][0:len_sig]) ** 2))
-        notch_score.append(np.mean((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2))# notch - gt
+        score.append(np.sum((prediction_sig - data_test_traces[i][0:len_sig]) ** 2))
+        notch_score.append(np.sum((data_test_traces[i][-len_sig:] - data_test_traces[i][0:len_sig]) ** 2))# notch - gt
+
+    # output predictions
+    X = np.array(X)
+    # Write the dataset to HDF5 file
+    name_data = name_test_dataset + "Prediction Result "
+    f = h5py.File(path_output + 'datasets/' + name_data + '.h5', 'w')
+    f.create_dataset('X', data=X)
+    f.close()
     return score, notch_score
 
 
@@ -320,15 +333,15 @@ def main(argv):
 
 if __name__ == "__main__":
     import sys
-    # alpha = [0.001, 0.01]
-    # beta = [0.001, 0.01]
-    # lamda = [0.00000001, 0.0000001, 0.000001]
-    # gamma = [0.001, 0.01, 0.1,]
-    # suspicious_radium = [1, 5]
-    # notch_weight = [0.2, 1, 10]
-    # learn_ratio = [0.05, 0.1, 0.2]
+    # alpha = [0.001]
+    # beta = [0.001]
+    # lamda = [0.000001, 0.1, 1]
+    # gamma = [0.01, 0.1]
+    # suspicious_radium = [1, 2, 3]
+    # notch_weight = [10, 20, 25]
+    # learn_ratio = [0.05, 0.1]
 
-    best_parameter = [0.001, 0.001, 1e-06, 0.001, 4, 1, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1]
+    best_parameter = [0.001, 0.001, 0.1, 0.1, 3, 10, 0.1] # best_parameter = [1, 0.001, 1, 1, 0.1] best_parameter = [0.001, 0.001, 1e-06, 0.001, 4, 1, 0.1]
     parameters = best_parameter
     score, notch_score = main(parameters)
     print('score: ', score)
@@ -353,18 +366,6 @@ if __name__ == "__main__":
     # print('notch_score: ', notch_score)
     # print('best_parameter: ', best_parameter)
 
-    # f2 = open('./best_parameters_log.txt','r+')
-    # f2.read()
-    # f2.write('\nbest score')
-    # for i in range(3):
-    #     f2.write('\n' + best_score[i])
-    # f2.write('\nnotch score')
-    # for i in range(3):
-    #     f2.write('\n' + notch_score[i])
-    # f2.write('\nbest_parameter')
-    # for i in range(3):
-    #     f2.write('\n' + best_parameter[i])
-    # f2.close()
 
 
 
